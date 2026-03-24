@@ -3,9 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Pokedex</title>
+    <link rel="shortcut icon" href="./img/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./styles/fonts.css">
+    <link rel="stylesheet" href="./styles/standard.css">
+    <link rel="stylesheet" href="./styles/assets.css">
+    <link rel="stylesheet" href="./styles/dialog.css">
+    <link rel="stylesheet" href="./styles/spinner.css">
 </head>
-<body>
-    
+<body onload="init()">
+    <header class="header_main_website">
+        <div class="header_content">
+            <img src="img/favicon.png" alt="Pokedex_Logo">
+            <h1 id="maintitle">Pokedex</h1>
+        </div>
+        <div>
+            <input type="search" minlength="3" placeholder="Name of Pokemon">
+        </div>
+    </header>
+    <main class="main_website">
+        <div class="main_content">
+            <section aria-labelledby="maintitle" class="image_style" id="image_load"></section>
+            <div id="button_load"></div>
+        </div>
+        <dialog aria-labelledby="name_img" onclick="closeDialog()" onkeydown="pressArrowKey(event)"
+            class="pictureDialogclass" id="pictureDialog">
+            <header id="dialogHeader" onclick="eventBubbling(event)">
+                <h2 id="name_img">
+                    Title Dialog
+                </h2>
+                <button aria-label="Dialog close" onclick="closeDialog()" class="closeButton">
+                    &times;
+                </button>
+            </header>
+            <main onclick="eventBubbling(event)" id="dialogMain">
+
+            </main>
+            <footer onclick="eventBubbling(event)" id="dialogFooter">
+
+            </footer>
+        </dialog>
+    </main>
+    <footer class="footer_main_website">&copy; 2025 Kevin Eberheim</footer>
 </body>
+<script src="script.js"></script>
 </html>

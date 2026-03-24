@@ -1,0 +1,10 @@
+.load_more_btn:hover {
+    background-color: #555;
+    transform: scale(1.05);
+}
+
+.load_more_btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+    transform: none;
+}
