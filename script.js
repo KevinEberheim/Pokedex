@@ -23,7 +23,7 @@ const typeColors = {
 // ---------------- Globale Variablen ----------------
 let allPokemon = [];
 let visibleCount = 20;
-const maxPokemon = 100;
+const maxPokemon = 1000;
 
 // ---------------- Init-Funktion ----------------
 async function init() {
@@ -51,6 +51,32 @@ function hideLoader() {
 }
 
 // ---------------- Pokémon laden (alle auf einmal) ----------------
+// async function loadPokemon() {
+//     try {
+//         showLoader();
+
+//         const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=0`);
+//         const data = await response.json();
+
+//         // Parallel alle Details laden
+//         const promises = data.results.map(async (pokemon) => {
+//             const res = await fetch(pokemon.url);
+//             const pokeData = await res.json();
+//             return pokeData;
+//         });
+
+//         allPokemon = await Promise.all(promises);
+
+//         renderPokemon();
+
+//     } catch (e) {
+//         console.error(e);
+//     } finally {
+//         hideLoader();
+//     }
+// }
+
+// ---------------- Pokémon laden (alle nacheinander) ----------------
 async function loadPokemon() {
     try {
         showLoader();
@@ -58,14 +84,12 @@ async function loadPokemon() {
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=0`);
         const data = await response.json();
 
-        // Parallel alle Details laden
-        const promises = data.results.map(async (pokemon) => {
+        // Nacheinander laden (seriell)
+        for (const pokemon of data.results) {
             const res = await fetch(pokemon.url);
             const pokeData = await res.json();
-            return pokeData;
-        });
-
-        allPokemon = await Promise.all(promises);
+            allPokemon.push(pokeData);
+        }
 
         renderPokemon();
 
@@ -109,7 +133,7 @@ function renderPokemon(filteredList = allPokemon) {
             </button>
         `;
     }
-    else{
+    else {
         document.getElementById("button_load").innerHTML = "";
     }
 }
@@ -117,18 +141,7 @@ function renderPokemon(filteredList = allPokemon) {
 // ---------------- Mehr laden ----------------
 function loadMore() {
     visibleCount += 20;
-
-    const input = document.querySelector("input");
-    const value = input.value.toLowerCase();
-
-    if (value.length >= 3) {
-        const filtered = allPokemon.filter(pokemon =>
-            pokemon.name.toLowerCase().includes(value)
-        );
-        renderPokemon(filtered);
-    } else {
-        renderPokemon();
-    }
+    renderPokemon();
 }
 
 // ---------------- Suchfunktion ----------------
@@ -157,16 +170,22 @@ function openDialog(index) {
     const typesHTML = pokemon.types.map(t => t.type.name).join(", ");
 
     document.getElementById("dialogMain").innerHTML = `
-        <img src="${pokemon.sprites.front_default}">
+        <img src="${pokemon.sprites.other.home.front_default}">
         <p><strong>Height:</strong> ${pokemon.height}</p>
         <p><strong>Weight:</strong> ${pokemon.weight}</p>
         <p><strong>Type:</strong> ${typesHTML}</p>
     `;
 
     document.getElementById("dialogFooter").innerHTML = `
-        <button onclick="prevPokemon(${index})">⬅️</button>
-        <button onclick="nextPokemon(${index})">➡️</button>
-    `;
+        <button aria-label="Dialog switch image left" onclick="onclick="prevPokemon(${index})" class="leftRightButton">
+            &blacktriangleleft;
+        </button>
+        <button aria-label="Dialog switch image right" onclick="nextPokemon(${index})" class="leftRightButton">
+            &blacktriangleright;
+        </button>`;
+
+
+
 
     dialog.showModal();
 }
