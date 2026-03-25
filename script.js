@@ -23,7 +23,7 @@ const typeColors = {
 // ---------------- Globale Variablen ----------------
 let allPokemon = [];
 let visibleCount = 20;
-const maxPokemon = 1000;
+const maxPokemon = 1350;
 
 // ---------------- Init-Funktion ----------------
 async function init() {
@@ -90,7 +90,8 @@ async function loadPokemon() {
             const pokeData = await res.json();
             allPokemon.push(pokeData);
         }
-
+        console.log(allPokemon);
+        
         renderPokemon();
 
     } catch (e) {
