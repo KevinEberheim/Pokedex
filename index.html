@@ -11,21 +11,25 @@
     <link rel="stylesheet" href="./styles/assets.css">
     <link rel="stylesheet" href="./styles/dialog.css">
     <link rel="stylesheet" href="./styles/spinner.css">
+    <link rel="stylesheet" href="./styles/color.css">
+    <script src="scripts/templates.js"></script>
 </head>
 <body onload="init()">
-    <header class="header_main_website">
+    <header class="bg_header">
+        <div class="header_main_content_wrapper">
         <div class="header_content">
             <img src="img/favicon.png" alt="Pokedex_Logo">
             <h1 id="maintitle">Pokedex</h1>
         </div>
         <div>
-            <input type="search" minlength="3" placeholder="Name of Pokemon" id="searchPokemon">
+            <input type="text" placeholder="Name of Pokemon" id="searchPokemon">
+        </div>
         </div>
     </header>
     <main class="main_website">
         <div class="main_content">
             <section aria-labelledby="maintitle" class="image_style" id="image_load"></section>
-            <div id="button_load"></div>
+            <div id="button_load" class="button_main_content"></div>
         </div>
         <dialog aria-labelledby="name_img" onclick="closeDialog()" onkeydown="pressArrowKey(event)"
             class="pictureDialogclass" id="pictureDialog">

@@ -1,10 +1,69 @@
-.load_more_btn:hover {
+.load_btn {
+    background-color: #05171E;
+    border-radius: 16px;
+    border: none;
+    padding: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.load_btn:hover {
     background-color: #555;
     transform: scale(1.05);
 }
 
-.load_more_btn:disabled {
-    background-color: #999;
-    cursor: not-allowed;
-    transform: none;
+.button_main_content {
+    display: flex;
+    gap: 32px;
+}
+
+button:focus-visible {
+    outline: 4px solid #6BC1E1;
+}
+
+.leftRightButton {
+    background-color: #1E1E23;
+    color: #F05C50;
+    font-size: 40px;
+    font-weight: bold;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}
+
+.leftRightButton:hover {
+    background-color: #382428;
+}
+
+.leftRightButton:focus-visible {
+    background-color: #382428;
+    outline: 2px solid #6BC1E1;
+}
+
+.closeButton {
+    background-color: #082029;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}
+
+.closeButton:hover {
+    background-color: #124658;
+}
+
+.closeButton:focus-visible {
+    background-color: #124658;
+    outline: 2px solid #6BC1E1;
+}
+
+.closeButton:active {
+    background-color: #0D3240;
 }

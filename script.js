@@ -1,173 +1,118 @@
-// ---------------- Typfarben ----------------
-const typeColors = {
-    normal: "#A8A77A",
-    fire: "#EE8130",
-    water: "#6390F0",
-    electric: "#F7D02C",
-    grass: "#7AC74C",
-    ice: "#96D9D6",
-    fighting: "#C22E28",
-    poison: "#A33EA1",
-    ground: "#E2BF65",
-    flying: "#A98FF3",
-    psychic: "#F95587",
-    bug: "#A6B91A",
-    rock: "#B6A136",
-    ghost: "#735797",
-    dragon: "#6F35FC",
-    dark: "#705746",
-    steel: "#B7B7CE",
-    fairy: "#D685AD"
-};
-
-// ---------------- Globale Variablen ----------------
 let allPokemon = [];
 let visibleCount = 20;
-const maxPokemon = 1350;
-const typeCache = {};
+const maxPokemon = 100;
 
-// ---------------- Init-Funktion ----------------
+
 async function init() {
-    await loadPokemon();
+    await loadPokemons();
 
-    // 🔍 Suche aktivieren
     const input = document.getElementById("searchPokemon");
     input.addEventListener("input", filterPokemon);
 }
 
-// ---------------- Ladeanimation ----------------
 function showLoader() {
     const container = document.getElementById("image_load");
     container.innerHTML = `
         <div class="loader">
             <div class="spinner"></div>
-            <p>Lade Pokémon...</p>
+            <p>Load Pokemon...</p>
         </div>
     `;
 }
 
 function hideLoader() {
     const loader = document.querySelector(".loader");
-    if (loader) loader.remove();
+    if (loader) { loader.remove(); }
 }
 
-// ---------------- Pokémon laden (alle auf einmal) ----------------
-// async function loadPokemon() {
-//     try {
-//         showLoader();
-
-//         const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=0`);
-//         const data = await response.json();
-
-//         // Parallel alle Details laden
-//         const promises = data.results.map(async (pokemon) => {
-//             const res = await fetch(pokemon.url);
-//             const pokeData = await res.json();
-//             return pokeData;
-//         });
-
-//         allPokemon = await Promise.all(promises);
-
-//         renderPokemon();
-
-//     } catch (e) {
-//         console.error(e);
-//     } finally {
-//         hideLoader();
-//     }
-// }
-
-// ---------------- Pokémon laden (alle nacheinander) ----------------
-async function loadPokemon() {
+async function loadPokemons() {
     try {
         showLoader();
 
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=0`);
         const data = await response.json();
-
-        // Nacheinander laden (seriell)
-        for (const pokemon of data.results) {
-            const res = await fetch(pokemon.url);
-            const pokeData = await res.json();
-            allPokemon.push(pokeData);
-        }
-        console.log(allPokemon);
+        await loadPokemonDetails(data);
 
         renderPokemon();
 
-    } catch (e) {
-        console.error(e);
-    } finally {
         hideLoader();
+
+    } catch (error) {
+        console.error(error);
     }
 }
 
+async function loadPokemonDetails(data) {
+    const promises = data.results.map(async (pokemon) => {
+        const res = await fetch(pokemon.url);
+        const pokeData = await res.json();
+        return pokeData;
+    });
+    allPokemon = await Promise.all(promises);
+}
+
+async function loadIcons(pokemon) {
+    const icons = await Promise.all(
+        pokemon.types.map(pokemon => getTypeIcon(pokemon.type.url))
+    );
+
+    let typesHTML = "";
+    icons.forEach(icon => {
+        if (icon) { typesHTML += `<img src="${icon}" class="type-icon">`; }
+    });
+    return typesHTML;
+}
+
 async function getTypeIcon(typeUrl) {
-    if (typeCache[typeUrl]) return typeCache[typeUrl]; // wenn schon im Cache, zurückgeben
+    const typeCache = {};
+
+    if (typeCache[typeUrl]) { return typeCache[typeUrl]; }
 
     const response = await fetch(typeUrl);
     const data = await response.json();
 
-    // Optional chaining, falls manche Felder fehlen
     const icon = data.sprites["generation-vii"]["lets-go-pikachu-lets-go-eevee"].symbol_icon;
 
-    typeCache[typeUrl] = icon; // im Cache speichern
+    typeCache[typeUrl] = icon;
     return icon;
 }
 
-// ---------------- Pokémon anzeigen ----------------
 async function renderPokemon(filteredList = allPokemon) {
-    const container = document.getElementById("image_load");
-    container.innerHTML = "";
+    const containerPokemonLoad = document.getElementById("image_load");
+    containerPokemonLoad.innerHTML = "";
 
     const visiblePokemon = filteredList.slice(0, visibleCount);
 
     for (const pokemon of visiblePokemon) {
         const index = allPokemon.indexOf(pokemon);
         const mainType = pokemon.types[0].type.name;
-        const bgColor = typeColors[mainType] || "#ccc";
 
-        // Alle Typen-Icons laden (mit Cache)
-        const icons = await Promise.all(
-            pokemon.types.map(pokemon => getTypeIcon(pokemon.type.url))
-        );
+        typesHTML = await loadIcons(pokemon);
 
-        let typesHTML = "";
-        icons.forEach(icon => {
-            if (icon) {typesHTML += `<img src="${icon}" class="type-icon">`;}
-        });
-
-        container.innerHTML += `
-            <div class="pokemon_card" 
-                 onclick="openDialog(${index})"
-                 style="background-color: ${bgColor}">
-                <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
-                <h3>${pokemon.name}</h3>
-                <div>${typesHTML}</div>
-            </div>
-        `;
+        containerPokemonLoad.innerHTML += getPokemons(mainType, index, pokemon, typesHTML);
     }
+    createLoadButton(visibleCount, filteredList)
 
-    // Mehr laden Button nur wenn noch Pokémon übrig
-    if (visibleCount < filteredList.length) {
-        document.getElementById("button_load").innerHTML = `
-            <button onclick="loadMore()" class="load_more_btn">
-                Mehr laden
-            </button>
-        `;
-    }
-    else {
-        document.getElementById("button_load").innerHTML = "";
-    }
 }
 
-// ---------------- Mehr laden ----------------
-function loadMore() {
-    visibleCount += 20;
+function createLoadButton(visibleCount, filteredList) {
+    const buttonContainer = document.getElementById("button_load");
+
+    if (visibleCount === 20) {
+        return buttonContainer.innerHTML = getLoadMoreButton();
+    }
+    if (visibleCount >= filteredList.length) {
+        return buttonContainer.innerHTML = getLoadLessButton();        
+    }
+    
+    return buttonContainer.innerHTML = getLoadMoreAndLessButton();
+}
+
+function changeVisibleCount(amount) {
+    visibleCount += amount;
     renderPokemon();
 }
 
-// ---------------- Suchfunktion ----------------
 function filterPokemon(event) {
     const value = event.target.value.toLowerCase();
 
@@ -190,14 +135,7 @@ async function openDialog(index) {
 
     document.getElementById("name_img").innerText = pokemon.name;
 
-    const icons = await Promise.all(
-        pokemon.types.map(type => getTypeIcon(type.type.url))
-    );
-
-    let typesHTML = "";
-    icons.forEach(icon => {
-        if (icon) typesHTML += `<img src="${icon}" class="type-icon">`;
-    });
+    typesHTML = await loadIcons(pokemon);
 
     document.getElementById("dialogMain").innerHTML = `
         <img src="${pokemon.sprites.other.home.front_default}">
