@@ -24,13 +24,14 @@ const typeColors = {
 let allPokemon = [];
 let visibleCount = 20;
 const maxPokemon = 1350;
+const typeCache = {};
 
 // ---------------- Init-Funktion ----------------
 async function init() {
     await loadPokemon();
 
     // 🔍 Suche aktivieren
-    const input = document.querySelector("input");
+    const input = document.getElementById("searchPokemon");
     input.addEventListener("input", filterPokemon);
 }
 
@@ -91,7 +92,7 @@ async function loadPokemon() {
             allPokemon.push(pokeData);
         }
         console.log(allPokemon);
-        
+
         renderPokemon();
 
     } catch (e) {
@@ -101,19 +102,40 @@ async function loadPokemon() {
     }
 }
 
+async function getTypeIcon(typeUrl) {
+    if (typeCache[typeUrl]) return typeCache[typeUrl]; // wenn schon im Cache, zurückgeben
+
+    const response = await fetch(typeUrl);
+    const data = await response.json();
+
+    // Optional chaining, falls manche Felder fehlen
+    const icon = data.sprites["generation-vii"]["lets-go-pikachu-lets-go-eevee"].symbol_icon;
+
+    typeCache[typeUrl] = icon; // im Cache speichern
+    return icon;
+}
+
 // ---------------- Pokémon anzeigen ----------------
-function renderPokemon(filteredList = allPokemon) {
+async function renderPokemon(filteredList = allPokemon) {
     const container = document.getElementById("image_load");
     container.innerHTML = "";
 
     const visiblePokemon = filteredList.slice(0, visibleCount);
 
-    visiblePokemon.forEach((pokemon) => {
+    for (const pokemon of visiblePokemon) {
         const index = allPokemon.indexOf(pokemon);
         const mainType = pokemon.types[0].type.name;
         const bgColor = typeColors[mainType] || "#ccc";
 
-        const typesHTML = pokemon.types.map(t => t.type.name).join(", ");
+        // Alle Typen-Icons laden (mit Cache)
+        const icons = await Promise.all(
+            pokemon.types.map(pokemon => getTypeIcon(pokemon.type.url))
+        );
+
+        let typesHTML = "";
+        icons.forEach(icon => {
+            if (icon) {typesHTML += `<img src="${icon}" class="type-icon">`;}
+        });
 
         container.innerHTML += `
             <div class="pokemon_card" 
@@ -121,10 +143,10 @@ function renderPokemon(filteredList = allPokemon) {
                  style="background-color: ${bgColor}">
                 <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
                 <h3>${pokemon.name}</h3>
-                <p>${typesHTML}</p>
+                <div>${typesHTML}</div>
             </div>
         `;
-    });
+    }
 
     // Mehr laden Button nur wenn noch Pokémon übrig
     if (visibleCount < filteredList.length) {
@@ -162,13 +184,20 @@ function filterPokemon(event) {
 }
 
 // ---------------- Dialog ----------------
-function openDialog(index) {
+async function openDialog(index) {
     const pokemon = allPokemon[index];
     const dialog = document.getElementById("pictureDialog");
 
     document.getElementById("name_img").innerText = pokemon.name;
 
-    const typesHTML = pokemon.types.map(t => t.type.name).join(", ");
+    const icons = await Promise.all(
+        pokemon.types.map(type => getTypeIcon(type.type.url))
+    );
+
+    let typesHTML = "";
+    icons.forEach(icon => {
+        if (icon) typesHTML += `<img src="${icon}" class="type-icon">`;
+    });
 
     document.getElementById("dialogMain").innerHTML = `
         <img src="${pokemon.sprites.other.home.front_default}">
@@ -220,5 +249,7 @@ function pressArrowKey(event) {
     const index = allPokemon.findIndex(p => p.name === name);
 
     if (event.key === "ArrowRight") nextPokemon(index);
+    if (event.key === "ArrowUp") nextPokemon(index);
     if (event.key === "ArrowLeft") prevPokemon(index);
+    if (event.key === "ArrowDown") prevPokemon(index);
 }

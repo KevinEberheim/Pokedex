@@ -141,3 +141,9 @@ button:focus-visible {
 .closeButton:active {
     background-color: #0D3240;
 }
+
+.type-icon {
+    width: 30px;
+    height: 30px;
+    margin: 2px;
+}
