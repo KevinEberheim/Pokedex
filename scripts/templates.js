@@ -1,3 +1,13 @@
+function getLoader() {
+    return `
+        <div class="loader">
+            <div class="spinner"></div>
+            <p>Load Pokemon...</p>
+        </div>
+        `;
+}
+
+
 function getPokemons(mainType, index, pokemon, typesHTML) {
     return `
             <div class="pokemon_card bg_${mainType}" 
@@ -34,4 +44,15 @@ function getLoadMoreAndLessButton(){
                 Less Pokemon
             </button>
             `;
+}
+
+function getFooterDialog(index){
+    return `
+        <button aria-label="Dialog switch image left" onclick="prevPokemon(${index})" class="leftRightButton">
+            &blacktriangleleft;
+        </button>
+        <button aria-label="Dialog switch image right" onclick="nextPokemon(${index})" class="leftRightButton">
+            &blacktriangleright;
+        </button>
+        `;
 }

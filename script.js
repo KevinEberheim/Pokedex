@@ -1,6 +1,6 @@
 let allPokemon = [];
 let visibleCount = 20;
-const maxPokemon = 100;
+const maxPokemon = 1350;
 
 
 async function init() {
@@ -11,13 +11,8 @@ async function init() {
 }
 
 function showLoader() {
-    const container = document.getElementById("image_load");
-    container.innerHTML = `
-        <div class="loader">
-            <div class="spinner"></div>
-            <p>Load Pokemon...</p>
-        </div>
-    `;
+    const containerLoader = document.getElementById("image_load");
+    containerLoader.innerHTML = getLoader();
 }
 
 function hideLoader() {
@@ -33,9 +28,8 @@ async function loadPokemons() {
         const data = await response.json();
         await loadPokemonDetails(data);
 
-        renderPokemon();
-
         hideLoader();
+        renderPokemon();        
 
     } catch (error) {
         console.error(error);
@@ -44,8 +38,8 @@ async function loadPokemons() {
 
 async function loadPokemonDetails(data) {
     const promises = data.results.map(async (pokemon) => {
-        const res = await fetch(pokemon.url);
-        const pokeData = await res.json();
+        const response = await fetch(pokemon.url);
+        const pokeData = await response.json();
         return pokeData;
     });
     allPokemon = await Promise.all(promises);
@@ -53,7 +47,7 @@ async function loadPokemonDetails(data) {
 
 async function loadIcons(pokemon) {
     const icons = await Promise.all(
-        pokemon.types.map(pokemon => getTypeIcon(pokemon.type.url))
+        pokemon.types.map(pokemon => getTypeIcons(pokemon.type.url))
     );
 
     let typesHTML = "";
@@ -63,7 +57,7 @@ async function loadIcons(pokemon) {
     return typesHTML;
 }
 
-async function getTypeIcon(typeUrl) {
+async function getTypeIcons(typeUrl) {
     const typeCache = {};
 
     if (typeCache[typeUrl]) { return typeCache[typeUrl]; }
@@ -87,7 +81,7 @@ async function renderPokemon(filteredList = allPokemon) {
         const index = allPokemon.indexOf(pokemon);
         const mainType = pokemon.types[0].type.name;
 
-        typesHTML = await loadIcons(pokemon);
+        let typesHTML = await loadIcons(pokemon);
 
         containerPokemonLoad.innerHTML += getPokemons(mainType, index, pokemon, typesHTML);
     }
@@ -132,28 +126,32 @@ function filterPokemon(event) {
 async function openDialog(index) {
     const pokemon = allPokemon[index];
     const dialog = document.getElementById("pictureDialog");
+    const mainType = pokemon.types[0].type.name;
 
     document.getElementById("name_img").innerText = pokemon.name;
 
-    typesHTML = await loadIcons(pokemon);
+    let typesHTML = await loadIcons(pokemon);
 
     document.getElementById("dialogMain").innerHTML = `
-        <img src="${pokemon.sprites.other.home.front_default}">
-        <p><strong>Height:</strong> ${pokemon.height}</p>
-        <p><strong>Weight:</strong> ${pokemon.weight}</p>
-        <p><strong>Type:</strong> ${typesHTML}</p>
+        <div class="dialogMainImg">
+            <div class="bg_${mainType} pad_in">
+            <img src="${pokemon.sprites.other.home.front_default}">
+            </div>
+            <div class="types">${typesHTML}</div>
+        </div>
+
+        <div class="tabs">
+            <button onclick="showTab('main', ${index})">Main</button>
+            <button onclick="showTab('stats', ${index})">Stats</button>
+            <button onclick="showTab('evo', ${index})">EvoChain</button>
+        </div>
+
+        <div id="tabContent" class="tabsContent"></div>
     `;
 
-    document.getElementById("dialogFooter").innerHTML = `
-        <button aria-label="Dialog switch image left" onclick="onclick="prevPokemon(${index})" class="leftRightButton">
-            &blacktriangleleft;
-        </button>
-        <button aria-label="Dialog switch image right" onclick="nextPokemon(${index})" class="leftRightButton">
-            &blacktriangleright;
-        </button>`;
+    document.getElementById("dialogFooter").innerHTML = getFooterDialog(index);
 
-
-
+    showTab('main', index);
 
     dialog.showModal();
 }
@@ -164,6 +162,78 @@ function closeDialog() {
 
 function eventBubbling(event) {
     event.stopPropagation();
+}
+
+async function showTab(tab, index) {
+    const pokemon = allPokemon[index];
+    let content = "";
+
+    if (tab === "main") {
+        content = getMainTab(pokemon);
+    } else if (tab === "stats") {
+        content = getStatsTab(pokemon);
+    } else if (tab === "evo") {
+        content = await getEvoTab(pokemon);
+    }
+
+    document.getElementById("tabContent").innerHTML = content;
+}
+
+function getMainTab(pokemon) {
+    const height = pokemon.height / 10;
+    const weight = pokemon.weight / 10;
+
+    return `
+        <p><strong>Height:</strong> ${height.toFixed(1)} m</p>
+        <p><strong>Weight:</strong> ${weight.toFixed(1)} kg</p>
+        <p><strong>Base Experience:</strong> ${pokemon.base_experience}</p>
+        <p><strong>Abilities:</strong> 
+            ${pokemon.abilities.map(a => a.ability.name).join(", ")}
+        </p>
+    `;
+}
+
+function getStatsTab(pokemon) {
+    console.log("Stats werden gerendert");
+    return pokemon.stats.map(stat => {
+        const value = stat.base_stat;
+        const max = 150; // typische Obergrenze
+        const percent = (value / max) * 100;
+
+        return `
+            <div class="stat-row">
+                <div class="stat-name">
+                <span> ${stat.stat.name}</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill" style="width: ${percent}%"></div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function getEvoTab(pokemon) {
+    const speciesResponse = await fetch(pokemon.species.url);
+    const speciesData = await speciesResponse.json();
+
+    const evoResponse = await fetch(speciesData.evolution_chain.url);
+    const evoData = await evoResponse.json();
+
+    const evoList = [];
+    let current = evoData.chain;
+
+    while (current) {
+        evoList.push(current.species.name);
+        current = current.evolves_to[0];
+    }
+
+    return evoList.map(name => `
+        <div class="evo-item">
+            <img src="https://img.pokemondb.net/sprites/home/normal/${name}.png">
+            <p>${name}</p>
+        </div>
+    `).join("");
 }
 
 // ---------------- Dialog Navigation ----------------
