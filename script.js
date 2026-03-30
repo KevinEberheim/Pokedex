@@ -1,6 +1,6 @@
 let allPokemon = [];
 let visibleCount = 20;
-const maxPokemon = 1350;
+const maxPokemon = 100;
 
 
 async function init() {
@@ -29,7 +29,7 @@ async function loadPokemons() {
         await loadPokemonDetails(data);
 
         hideLoader();
-        renderPokemon();        
+        renderPokemon();
 
     } catch (error) {
         console.error(error);
@@ -71,34 +71,42 @@ async function getTypeIcons(typeUrl) {
     return icon;
 }
 
-async function renderPokemon(filteredList = allPokemon) {
+async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
     const containerPokemonLoad = document.getElementById("image_load");
     containerPokemonLoad.innerHTML = "";
-
+    const buttonContainer = document.getElementById("button_load");
     const visiblePokemon = filteredList.slice(0, visibleCount);
 
-    for (const pokemon of visiblePokemon) {
-        const index = allPokemon.indexOf(pokemon);
-        const mainType = pokemon.types[0].type.name;
+    const pokemonHTML = await Promise.all(
+        visiblePokemon.map(async (pokemon) => {
+            const index = allPokemon.indexOf(pokemon); // nur wenn nötig!
+            const mainType = pokemon.types[0].type.name;
+            const typesHTML = await loadIcons(pokemon);
 
-        let typesHTML = await loadIcons(pokemon);
+            return getPokemons(mainType, index, pokemon, typesHTML);
+        })
+    );
+    containerPokemonLoad.innerHTML = pokemonHTML.join("");
 
-        containerPokemonLoad.innerHTML += getPokemons(mainType, index, pokemon, typesHTML);
+    if (!isFiltered) {
+        createLoadButton(filteredList);
     }
-    createLoadButton(visibleCount, filteredList)
+    else {
+        buttonContainer.innerHTML = "";
+    }
 
 }
 
-function createLoadButton(visibleCount, filteredList) {
+function createLoadButton(filteredList) {
     const buttonContainer = document.getElementById("button_load");
 
     if (visibleCount === 20) {
         return buttonContainer.innerHTML = getLoadMoreButton();
     }
     if (visibleCount >= filteredList.length) {
-        return buttonContainer.innerHTML = getLoadLessButton();        
+        return buttonContainer.innerHTML = getLoadLessButton();
     }
-    
+
     return buttonContainer.innerHTML = getLoadMoreAndLessButton();
 }
 
@@ -119,7 +127,7 @@ function filterPokemon(event) {
         pokemon.name.toLowerCase().includes(value)
     );
 
-    renderPokemon(filtered);
+    renderPokemon(filtered, true);
 }
 
 // ---------------- Dialog ----------------
