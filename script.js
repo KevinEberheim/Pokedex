@@ -1,6 +1,8 @@
 let allPokemon = [];
+let typeCache = {};
 let visibleCount = 20;
-const maxPokemon = 100;
+let maxPokemon = 100;
+let currentOffset = 0;
 
 
 async function init() {
@@ -16,15 +18,17 @@ function showLoader() {
 }
 
 function hideLoader() {
-    const loader = document.querySelector(".loader");
-    if (loader) { loader.remove(); }
+    const loaders = document.getElementsByClassName("loader");
+    if (loaders.length > 0) {
+        loaders[0].remove();
+    }
 }
 
 async function loadPokemons() {
     try {
         showLoader();
 
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=0`);
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=${currentOffset}`);
         const data = await response.json();
         await loadPokemonDetails(data);
 
@@ -42,7 +46,8 @@ async function loadPokemonDetails(data) {
         const pokeData = await response.json();
         return pokeData;
     });
-    allPokemon = await Promise.all(promises);
+    let pokemonDetails = await Promise.all(promises);
+    allPokemon = [...allPokemon, ...pokemonDetails];
 }
 
 async function loadIcons(pokemon) {
@@ -58,8 +63,6 @@ async function loadIcons(pokemon) {
 }
 
 async function getTypeIcons(typeUrl) {
-    const typeCache = {};
-
     if (typeCache[typeUrl]) { return typeCache[typeUrl]; }
 
     const response = await fetch(typeUrl);
@@ -103,16 +106,23 @@ function createLoadButton(filteredList) {
     if (visibleCount === 20) {
         return buttonContainer.innerHTML = getLoadMoreButton();
     }
-    if (visibleCount >= filteredList.length) {
+    if (visibleCount > filteredList.length) {
         return buttonContainer.innerHTML = getLoadLessButton();
     }
 
     return buttonContainer.innerHTML = getLoadMoreAndLessButton();
 }
 
-function changeVisibleCount(amount) {
-    visibleCount += amount;
-    renderPokemon();
+function changeVisibleCount(amount) {    
+    if (visibleCount >= allPokemon.length && amount > 0) {
+        currentOffset += 100;
+        visibleCount += amount;
+        loadPokemons();
+    }
+    else {
+        visibleCount += amount;
+        renderPokemon();
+    }
 }
 
 function filterPokemon(event) {
@@ -129,6 +139,11 @@ function filterPokemon(event) {
 
     renderPokemon(filtered, true);
 }
+
+
+
+
+
 
 // ---------------- Dialog ----------------
 async function openDialog(index) {
@@ -202,7 +217,6 @@ function getMainTab(pokemon) {
 }
 
 function getStatsTab(pokemon) {
-    console.log("Stats werden gerendert");
     return pokemon.stats.map(stat => {
         const value = stat.base_stat;
         const max = 150; // typische Obergrenze
@@ -259,13 +273,13 @@ function prevPokemon(index) {
 
 function pressArrowKey(event) {
     const dialog = document.getElementById("pictureDialog");
-    if (!dialog.open) return;
+    if (!dialog.open) { return; }
 
     const name = document.getElementById("name_img").innerText;
     const index = allPokemon.findIndex(p => p.name === name);
 
-    if (event.key === "ArrowRight") nextPokemon(index);
-    if (event.key === "ArrowUp") nextPokemon(index);
-    if (event.key === "ArrowLeft") prevPokemon(index);
-    if (event.key === "ArrowDown") prevPokemon(index);
+    if (event.key === "ArrowRight") { nextPokemon(index); }
+    if (event.key === "ArrowUp") { nextPokemon(index); }
+    if (event.key === "ArrowLeft") { prevPokemon(index); }
+    if (event.key === "ArrowDown") { prevPokemon(index); }
 }
