@@ -46,6 +46,48 @@ function getLoadMoreAndLessButton(){
             `;
 }
 
+
+function getDialogContent(mainType, pokemon, typesHTML, index){
+    return `
+        <div class="dialogMainImg">
+            <div class="bg_${mainType} pad_in justify_center">
+            <img src="${pokemon.sprites.other.home.front_default}" class="pictureDialogclass_img">
+            </div>
+            <div class="types">${typesHTML}</div>
+        </div>
+
+        <div class="tabs">
+            <button onclick="showTab('main', ${index})">Main</button>
+            <button onclick="showTab('stats', ${index})">Stats</button>
+            <button onclick="showTab('evo', ${index})">EvoChain</button>
+        </div>
+
+        <div id="tabContent" class="tabsContent"></div>
+    `;
+}
+
+function getDialogMain(height, weight, pokemon, abilities){
+    return `
+        <p><strong>Height:</strong> ${height.toFixed(1)} m </p>
+        <p><strong>Weight:</strong> ${weight.toFixed(1)} kg </p>
+        <p><strong>Base Experience:</strong> ${pokemon.base_experience} </p>
+        <p><strong>Abilities:</strong> ${abilities} </p>
+    `;
+}
+
+function getDialogStats(stat, percent){
+    return `
+            <div class="stat-row">
+                <div class="stat-name">
+                <span> ${stat.stat.name}</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill" style="width: ${percent}%"></div>
+                </div>
+            </div>
+        `;
+}
+
 function getFooterDialog(index){
     return `
         <button aria-label="Dialog switch image left" onclick="prevPokemon(${index})" class="leftRightButton">

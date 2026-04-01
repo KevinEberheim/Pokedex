@@ -155,22 +155,7 @@ async function openDialog(index) {
 
     let typesHTML = await loadIcons(pokemon);
 
-    document.getElementById("dialogMain").innerHTML = `
-        <div class="dialogMainImg">
-            <div class="bg_${mainType} pad_in">
-            <img src="${pokemon.sprites.other.home.front_default}">
-            </div>
-            <div class="types">${typesHTML}</div>
-        </div>
-
-        <div class="tabs">
-            <button onclick="showTab('main', ${index})">Main</button>
-            <button onclick="showTab('stats', ${index})">Stats</button>
-            <button onclick="showTab('evo', ${index})">EvoChain</button>
-        </div>
-
-        <div id="tabContent" class="tabsContent"></div>
-    `;
+    document.getElementById("dialogMain").innerHTML = getDialogContent(mainType, pokemon, typesHTML, index);
 
     document.getElementById("dialogFooter").innerHTML = getFooterDialog(index);
 
@@ -205,15 +190,8 @@ async function showTab(tab, index) {
 function getMainTab(pokemon) {
     const height = pokemon.height / 10;
     const weight = pokemon.weight / 10;
-
-    return `
-        <p><strong>Height:</strong> ${height.toFixed(1)} m</p>
-        <p><strong>Weight:</strong> ${weight.toFixed(1)} kg</p>
-        <p><strong>Base Experience:</strong> ${pokemon.base_experience}</p>
-        <p><strong>Abilities:</strong> 
-            ${pokemon.abilities.map(a => a.ability.name).join(", ")}
-        </p>
-    `;
+    let abilities = pokemon.abilities.map(a => a.ability.name).join(", ")
+    return getDialogMain(height, weight, pokemon, abilities);
 }
 
 function getStatsTab(pokemon) {
@@ -222,16 +200,7 @@ function getStatsTab(pokemon) {
         const max = 150; // typische Obergrenze
         const percent = (value / max) * 100;
 
-        return `
-            <div class="stat-row">
-                <div class="stat-name">
-                <span> ${stat.stat.name}</span>
-                </div>
-                <div class="stat-bar">
-                    <div class="stat-fill" style="width: ${percent}%"></div>
-                </div>
-            </div>
-        `;
+        return getDialogStats(stat, percent);
     }).join("");
 }
 
@@ -252,7 +221,7 @@ async function getEvoTab(pokemon) {
 
     return evoList.map(name => `
         <div class="evo-item">
-            <img src="https://img.pokemondb.net/sprites/home/normal/${name}.png">
+            <img src="https://img.pokemondb.net/sprites/home/normal/${name}.png" class="evo_Img">
             <p>${name}</p>
         </div>
     `).join("");
