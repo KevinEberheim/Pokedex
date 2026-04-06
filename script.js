@@ -1,20 +1,27 @@
 let allPokemon = [];
 let typeCache = {};
 let visibleCount = 20;
-let maxPokemon = 100;
+let maxLoadPokemon = 100;
 let currentOffset = 0;
+const DOM = {
+    dialog: document.getElementById("pokemonDialog"),
+    dialogMain: document.getElementById("dialogMain"),
+    dialogFooter: document.getElementById("dialogFooter"),
+    nameImg: document.getElementById("name_img"),
+    pokemonLoad: document.getElementById("pokemon_load"),
+    buttonLoad: document.getElementById("button_load"),
+    searchInput: document.getElementById("searchPokemon")
+};
 
 
 async function init() {
     await loadPokemons();
 
-    const input = document.getElementById("searchPokemon");
-    input.addEventListener("input", filterPokemon);
+    DOM.searchInput.addEventListener("input", filterPokemon);
 }
 
 function showLoader() {
-    const containerLoader = document.getElementById("image_load");
-    containerLoader.innerHTML = getLoader();
+    DOM.pokemonLoad.innerHTML = getLoader();
 }
 
 function hideLoader() {
@@ -28,7 +35,7 @@ async function loadPokemons() {
     try {
         showLoader();
 
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxPokemon}&offset=${currentOffset}`);
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
         const data = await response.json();
         await loadPokemonDetails(data);
 
@@ -75,45 +82,44 @@ async function getTypeIcons(typeUrl) {
 }
 
 async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
-    const containerPokemonLoad = document.getElementById("image_load");
-    containerPokemonLoad.innerHTML = "";
-    const buttonContainer = document.getElementById("button_load");
+    DOM.pokemonLoad.innerHTML = "";
     const visiblePokemon = filteredList.slice(0, visibleCount);
+    let containerPokemon = "";
+    for (let i = 0; i < visiblePokemon.length; i++) {
+        const pokemon = visiblePokemon[i];
+        const index = allPokemon.indexOf(pokemon);
+        const mainType = pokemon.types[0].type.name;
+        const typesHTML = await loadIcons(pokemon);
 
-    const pokemonHTML = await Promise.all(
-        visiblePokemon.map(async (pokemon) => {
-            const index = allPokemon.indexOf(pokemon); // nur wenn nötig!
-            const mainType = pokemon.types[0].type.name;
-            const typesHTML = await loadIcons(pokemon);
+        containerPokemon += getPokemons(mainType, index, pokemon, typesHTML);
+    }
 
-            return getPokemons(mainType, index, pokemon, typesHTML);
-        })
-    );
-    containerPokemonLoad.innerHTML = pokemonHTML.join("");
+    DOM.pokemonLoad.innerHTML = containerPokemon;
 
+    checkLoadButton(isFiltered, filteredList);
+}
+
+function checkLoadButton(isFiltered, filteredList) {
     if (!isFiltered) {
         createLoadButton(filteredList);
     }
     else {
-        buttonContainer.innerHTML = "";
+        DOM.buttonLoad.innerHTML = "";
     }
-
 }
 
 function createLoadButton(filteredList) {
-    const buttonContainer = document.getElementById("button_load");
-
     if (visibleCount === 20) {
-        return buttonContainer.innerHTML = getLoadMoreButton();
+        return DOM.buttonLoad.innerHTML = getLoadMoreButton();
     }
     if (visibleCount > filteredList.length) {
-        return buttonContainer.innerHTML = getLoadLessButton();
+        return DOM.buttonLoad.innerHTML = getLoadLessButton();
     }
 
-    return buttonContainer.innerHTML = getLoadMoreAndLessButton();
+    return DOM.buttonLoad.innerHTML = getLoadMoreAndLessButton();
 }
 
-function changeVisibleCount(amount) {    
+function changeVisibleCount(amount) {
     if (visibleCount >= allPokemon.length && amount > 0) {
         currentOffset += 100;
         visibleCount += amount;
@@ -148,24 +154,22 @@ function filterPokemon(event) {
 // ---------------- Dialog ----------------
 async function openDialog(index) {
     const pokemon = allPokemon[index];
-    const dialog = document.getElementById("pictureDialog");
     const mainType = pokemon.types[0].type.name;
-
-    document.getElementById("name_img").innerText = pokemon.name;
+    DOM.nameImg.innerText = pokemon.name;
 
     let typesHTML = await loadIcons(pokemon);
 
-    document.getElementById("dialogMain").innerHTML = getDialogContent(mainType, pokemon, typesHTML, index);
+    DOM.dialogMain.innerHTML = getDialogContent(mainType, pokemon, typesHTML, index);
 
-    document.getElementById("dialogFooter").innerHTML = getFooterDialog(index);
+    DOM.dialogFooter.innerHTML = getFooterDialog(index);
 
     showTab('main', index);
 
-    dialog.showModal();
+    DOM.dialog.showModal();
 }
 
 function closeDialog() {
-    document.getElementById("pictureDialog").close();
+    DOM.dialog.close();
 }
 
 function eventBubbling(event) {
@@ -174,17 +178,15 @@ function eventBubbling(event) {
 
 async function showTab(tab, index) {
     const pokemon = allPokemon[index];
-    let content = "";
+    if (tab === "main") { return updateTab(getMainTab(pokemon), false); }
+    if (tab === "stats") { return updateTab(getStatsTab(pokemon), false); }
+    if (tab === "evo") { return updateTab(await getEvoTab(pokemon), true); }
+}
 
-    if (tab === "main") {
-        content = getMainTab(pokemon);
-    } else if (tab === "stats") {
-        content = getStatsTab(pokemon);
-    } else if (tab === "evo") {
-        content = await getEvoTab(pokemon);
-    }
-
-    document.getElementById("tabContent").innerHTML = content;
+function updateTab(content, isEvo) {
+    const tabContent = document.getElementById("tabContent");
+    tabContent.classList.toggle('evo-container', isEvo);
+    tabContent.innerHTML = content;
 }
 
 function getMainTab(pokemon) {
@@ -197,34 +199,58 @@ function getMainTab(pokemon) {
 function getStatsTab(pokemon) {
     return pokemon.stats.map(stat => {
         const value = stat.base_stat;
-        const max = 150; // typische Obergrenze
-        const percent = (value / max) * 100;
+        const Max_STAT = 150;
+        const percent = (value / Max_STAT) * 100;
 
         return getDialogStats(stat, percent);
     }).join("");
 }
 
 async function getEvoTab(pokemon) {
-    const speciesResponse = await fetch(pokemon.species.url);
-    const speciesData = await speciesResponse.json();
+    try {
+        const speciesResponse = await fetch(pokemon.species.url);
+        const speciesData = await speciesResponse.json();
 
-    const evoResponse = await fetch(speciesData.evolution_chain.url);
-    const evoData = await evoResponse.json();
+        const evoResponse = await fetch(speciesData.evolution_chain.url);
+        const evoData = await evoResponse.json();
 
-    const evoList = [];
-    let current = evoData.chain;
+        const evoList = [];
+        let current = evoData.chain;
 
-    while (current) {
-        evoList.push(current.species.name);
-        current = current.evolves_to[0];
-    }
+        while (current) {
+            evoList.push(current.species.name);
+            current = current.evolves_to[0];
+        }
 
-    return evoList.map(name => `
+        return evoList.map((name, index) => {
+            const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
+
+            let img = "";
+
+            if (evoPokemon) {
+                img = evoPokemon.sprites.other.home.front_default;
+            }
+
+            // Prüfen ob letztes Element
+            let arrow = "";
+            if (index < evoList.length - 1) {
+                arrow = "<span class='evo-arrow'> &lt;&lt; </span>";
+            }
+
+            return `
         <div class="evo-item">
-            <img src="https://img.pokemondb.net/sprites/home/normal/${name}.png" class="evo_Img">
+            <img src="${img}" class="evo_Img">
             <p>${name}</p>
         </div>
-    `).join("");
+        ${arrow}
+        `;
+        }).join("");
+
+    }
+    catch (error) {
+        console.error("Fehler beim Laden der Evolution:", error);
+        return "<p>Evolution konnte nicht geladen werden.</p>";
+    }
 }
 
 // ---------------- Dialog Navigation ----------------
@@ -241,10 +267,9 @@ function prevPokemon(index) {
 }
 
 function pressArrowKey(event) {
-    const dialog = document.getElementById("pictureDialog");
-    if (!dialog.open) { return; }
+    if (!DOM.dialog.open) { return; }
 
-    const name = document.getElementById("name_img").innerText;
+    const name = DOM.nameImg.innerText.toLowerCase();
     const index = allPokemon.findIndex(p => p.name === name);
 
     if (event.key === "ArrowRight") { nextPokemon(index); }

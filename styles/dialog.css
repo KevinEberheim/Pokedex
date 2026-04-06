@@ -47,7 +47,7 @@
 }
 
 .tabsContent{
-    min-width: 400px;
+    min-width: 490px;
     min-height: 210px;
     width: 100%;
     color: white;
@@ -129,4 +129,15 @@
 .evo_Img{
     width: 100px;
     aspect-ratio: 1/1;
+}
+
+.evo-arrow {
+    font-size: 24px;
+    margin: 0 10px;
+    align-self: center;
+}
+
+.evo-container{
+    display: flex;
+    align-items: center;
 }
