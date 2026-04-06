@@ -208,50 +208,54 @@ function getStatsTab(pokemon) {
 
 async function getEvoTab(pokemon) {
     try {
-        const speciesResponse = await fetch(pokemon.species.url);
-        const speciesData = await speciesResponse.json();
+        const speciesData = await fetchJSON(pokemon.species.url);
+        const evoData = await fetchJSON(speciesData.evolution_chain.url);
 
-        const evoResponse = await fetch(speciesData.evolution_chain.url);
-        const evoData = await evoResponse.json();
-
-        const evoList = [];
-        let current = evoData.chain;
-
-        while (current) {
-            evoList.push(current.species.name);
-            current = current.evolves_to[0];
-        }
+        const evoList = extractEvolutionNames(evoData.chain);
 
         return evoList.map((name, index) => {
             const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
-
-            let img = "";
-
-            if (evoPokemon) {
-                img = evoPokemon.sprites.other.home.front_default;
-            }
-
-            // Prüfen ob letztes Element
-            let arrow = "";
-            if (index < evoList.length - 1) {
-                arrow = "<span class='evo-arrow'> &lt;&lt; </span>";
-            }
-
-            return `
-        <div class="evo-item">
-            <img src="${img}" class="evo_Img">
-            <p>${name}</p>
-        </div>
-        ${arrow}
-        `;
+            const img = getImageOfEvoPokemon(evoPokemon);
+            const arrow = createArrow(index, evoList);
+            return getDialogEvo(name, img) + arrow;
         }).join("");
 
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Fehler beim Laden der Evolution:", error);
         return "<p>Evolution konnte nicht geladen werden.</p>";
     }
 }
+
+async function fetchJSON(url) {
+    const res = await fetch(url);
+    return res.json();
+}
+
+function extractEvolutionNames(chain) {
+    const evoList = [];
+    let current = chain;
+
+    while (current) {
+        evoList.push(current.species.name);
+        current = current.evolves_to[0];
+    }
+
+    return evoList;
+}
+
+function getImageOfEvoPokemon(evoPokemon) {
+    let img = "";
+    if (evoPokemon) { img = evoPokemon.sprites.other.home.front_default; }
+    return img;
+}
+
+function createArrow(index, evoList) {
+    let arrow = "";
+    if (index < evoList.length - 1) { arrow = "<span class='evo-arrow'> &lt;&lt; </span>"; }
+    return arrow;
+}
+
+
 
 // ---------------- Dialog Navigation ----------------
 function nextPokemon(index) {

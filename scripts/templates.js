@@ -88,6 +88,15 @@ function getDialogStats(stat, percent){
         `;
 }
 
+function getDialogEvo(name, img) {
+    return `
+        <div class="evo-item">
+            <img src="${img}" class="evo_Img">
+            <p>${name}</p>
+        </div>
+    `;
+}
+
 function getFooterDialog(index){
     return `
         <button aria-label="Dialog switch image left" onclick="prevPokemon(${index})" class="leftRightButton">
