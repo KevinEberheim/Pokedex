@@ -12,7 +12,7 @@ const DOM = {
     buttonLoad: document.getElementById("button_load"),
     searchInput: document.getElementById("searchPokemon")
 };
-
+// Alles mit fetchJSON funktion machen
 
 async function init() {
     await loadPokemons();
@@ -226,8 +226,8 @@ async function getEvoTab(pokemon) {
 }
 
 async function fetchJSON(url) {
-    const res = await fetch(url);
-    return res.json();
+    const response = await fetch(url);
+    return response.json();
 }
 
 function extractEvolutionNames(chain) {
