@@ -84,17 +84,16 @@ async function getTypeIcons(typeUrl) {
 async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
     DOM.pokemonLoad.innerHTML = "";
     const visiblePokemon = filteredList.slice(0, visibleCount);
-    let containerPokemon = "";
-    for (let i = 0; i < visiblePokemon.length; i++) {
-        const pokemon = visiblePokemon[i];
-        const index = allPokemon.indexOf(pokemon);
-        const mainType = pokemon.types[0].type.name;
-        const typesHTML = await loadIcons(pokemon);
+    const pokemonHTML = await Promise.all(
+        visiblePokemon.map(async (pokemon) => {
+            const index = allPokemon.indexOf(pokemon); // nur wenn nötig!
+            const mainType = pokemon.types[0].type.name;
+            const typesHTML = await loadIcons(pokemon);
 
-        containerPokemon += getPokemons(mainType, index, pokemon, typesHTML);
-    }
-
-    DOM.pokemonLoad.innerHTML = containerPokemon;
+            return getPokemons(mainType, index, pokemon, typesHTML);
+        })
+    );
+    DOM.pokemonLoad.innerHTML = pokemonHTML.join("");
 
     checkLoadButton(isFiltered, filteredList);
 }
