@@ -85,12 +85,14 @@
     border-radius: 50%;
 }
 
-.image_style {
+.pokemon_style {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     gap: 16px;
+    color: white;
+    font-size: 24px;
 }
 
 .type-icon {

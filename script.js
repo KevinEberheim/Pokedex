@@ -97,15 +97,19 @@ async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
         })
     );
     DOM.pokemonLoad.innerHTML = pokemonHTML.join("");
-
-    checkLoadButton(isFiltered, filteredList);
+    updatePokemonUI(isFiltered, filteredList);
 }
 
-function checkLoadButton(isFiltered, filteredList) {
+function updatePokemonUI(isFiltered, filteredList) {
+    if (filteredList.length === 0) {
+        DOM.pokemonLoad.innerHTML = "Pokemon not found!";
+        DOM.buttonLoad.innerHTML = "";
+        return;
+    }
+
     if (!isFiltered) {
         createLoadButton(filteredList);
-    }
-    else {
+    } else {
         DOM.buttonLoad.innerHTML = "";
     }
 }
@@ -151,7 +155,11 @@ function filterPokemon(event) {
         pokemon.name.toLowerCase().includes(value)
     );
 
+    console.log(filtered)
+
     renderPokemon(filtered, true);
+
+    console.log(filtered)
 }
 
 
