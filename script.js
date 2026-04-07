@@ -43,7 +43,7 @@ async function loadPokemons() {
 
         const dataPokemon = await fetchJSON(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
         await loadPokemonDetails(dataPokemon);
-
+        
         hideLoader();
         renderPokemon();
 
@@ -57,7 +57,8 @@ async function loadPokemonDetails(dataPokemon) {
         const pokeData = await fetchJSON(pokemon.url);
         return pokeData;
     });
-    let pokemonDetails = await Promise.all(dataPokemonDetails);
+    
+    let pokemonDetails = await Promise.all(dataPokemonDetails);    
     allPokemon = [...allPokemon, ...pokemonDetails];
 }
 
@@ -155,11 +156,7 @@ function filterPokemon(event) {
         pokemon.name.toLowerCase().includes(value)
     );
 
-    console.log(filtered)
-
     renderPokemon(filtered, true);
-
-    console.log(filtered)
 }
 
 
