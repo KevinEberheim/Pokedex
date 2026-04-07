@@ -52,8 +52,20 @@
     align-items: center;
 }
 
+.inputWrapper{
+    position: relative;
+}
 
+.searchInput{
+    padding: 8px;
+}
 
+.noticeInputPokemon{
+    position: absolute;
+    margin-top: 2px;
+    font-size: 0.8rem;
+    color: red;;
+}
 
 .pokemon_card {
     border-radius: 12px;

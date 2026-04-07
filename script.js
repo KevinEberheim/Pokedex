@@ -10,7 +10,8 @@ const DOM = {
     nameImg: document.getElementById("name_img"),
     pokemonLoad: document.getElementById("pokemon_load"),
     buttonLoad: document.getElementById("button_load"),
-    searchInput: document.getElementById("searchPokemon")
+    searchInput: document.getElementById("searchPokemon"),
+    noticeInput: document.getElementById("noticeInput")
 };
 // Alles mit fetchJSON funktion machen
 
@@ -31,13 +32,17 @@ function hideLoader() {
     }
 }
 
+async function fetchJSON(url) {
+    const response = await fetch(url);
+    return response.json();
+}
+
 async function loadPokemons() {
     try {
         showLoader();
 
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
-        const data = await response.json();
-        await loadPokemonDetails(data);
+        const dataPokemon = await fetchJSON(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
+        await loadPokemonDetails(dataPokemon);
 
         hideLoader();
         renderPokemon();
@@ -47,13 +52,12 @@ async function loadPokemons() {
     }
 }
 
-async function loadPokemonDetails(data) {
-    const promises = data.results.map(async (pokemon) => {
-        const response = await fetch(pokemon.url);
-        const pokeData = await response.json();
+async function loadPokemonDetails(dataPokemon) {
+    const dataPokemonDetails = dataPokemon.results.map(async (pokemon) => {
+        const pokeData = await fetchJSON(pokemon.url);
         return pokeData;
     });
-    let pokemonDetails = await Promise.all(promises);
+    let pokemonDetails = await Promise.all(dataPokemonDetails);
     allPokemon = [...allPokemon, ...pokemonDetails];
 }
 
@@ -72,10 +76,9 @@ async function loadIcons(pokemon) {
 async function getTypeIcons(typeUrl) {
     if (typeCache[typeUrl]) { return typeCache[typeUrl]; }
 
-    const response = await fetch(typeUrl);
-    const data = await response.json();
+    const dataTypeIcons = await fetchJSON(typeUrl);
 
-    const icon = data.sprites["generation-vii"]["lets-go-pikachu-lets-go-eevee"].symbol_icon;
+    const icon = dataTypeIcons.sprites["generation-vii"]["lets-go-pikachu-lets-go-eevee"].symbol_icon;
 
     typeCache[typeUrl] = icon;
     return icon;
@@ -132,11 +135,17 @@ function changeVisibleCount(amount) {
 
 function filterPokemon(event) {
     const value = event.target.value.toLowerCase();
-
-    if (value.length < 3) {
+    if (!value){
+        DOM.noticeInput.innerHTML = "";
         renderPokemon();
         return;
     }
+    if (value.length < 3) {
+        DOM.noticeInput.textContent = "Need 3 or more letters";
+        renderPokemon();
+        return;
+    }
+    DOM.noticeInput.innerHTML = "";
 
     const filtered = allPokemon.filter(pokemon =>
         pokemon.name.toLowerCase().includes(value)
@@ -215,7 +224,7 @@ async function getEvoTab(pokemon) {
         return evoList.map((name, index) => {
             const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
             const img = getImageOfEvoPokemon(evoPokemon);
-            const arrow = createArrow(index, evoList);
+            const arrow = createEvoArrow(index, evoList);
             return getDialogEvo(name, img) + arrow;
         }).join("");
 
@@ -223,11 +232,6 @@ async function getEvoTab(pokemon) {
         console.error("Fehler beim Laden der Evolution:", error);
         return "<p>Evolution konnte nicht geladen werden.</p>";
     }
-}
-
-async function fetchJSON(url) {
-    const response = await fetch(url);
-    return response.json();
 }
 
 function extractEvolutionNames(chain) {
@@ -248,9 +252,9 @@ function getImageOfEvoPokemon(evoPokemon) {
     return img;
 }
 
-function createArrow(index, evoList) {
+function createEvoArrow(index, evoList) {
     let arrow = "";
-    if (index < evoList.length - 1) { arrow = "<span class='evo-arrow'> &lt;&lt; </span>"; }
+    if (index < evoList.length - 1) { arrow = "<span class='evo-arrow'> &rarr; </span>"; }
     return arrow;
 }
 

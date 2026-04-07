@@ -1,0 +1,42 @@
+@media (max-width:580px) {
+    .header_main_content_wrapper img {
+        height: 56px;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+
+    h2 {
+        font-size: 16px;
+    }
+
+    .tabsContent {
+        min-width: unset;
+    }
+
+    .evo-arrow {
+        font-size: 16px;
+        margin: 0;
+    }
+}
+
+@media (max-width:490px) {
+    .evo-container{
+        flex-direction: column;
+    }
+
+    .evo-arrow {
+        transform: rotate(90deg);
+        margin: 8px 0;
+    }
+
+    .header_main_content_wrapper{
+        flex-direction: column;
+        padding-bottom: 20px;
+    }
+
+    .searchInput {
+        padding: 2px;
+    }
+}
