@@ -12,7 +12,7 @@
     }
 
     .tabsContent {
-        min-width: unset;
+        min-width: 425px;
     }
 
     .evo-arrow {
@@ -22,8 +22,9 @@
 }
 
 @media (max-width:490px) {
-    .evo-container{
+    .evo-container {
         flex-direction: column;
+        justify-content: unset;
     }
 
     .evo-arrow {
@@ -31,12 +32,34 @@
         margin: 8px 0;
     }
 
-    .header_main_content_wrapper{
+    .header_main_content_wrapper {
         flex-direction: column;
         padding-bottom: 20px;
     }
 
     .searchInput {
         padding: 2px;
+    }
+
+    .pictureDialogclass_img {
+        width: 125px;
+    }
+
+    .evo_Img{
+        width: 75px;
+    }
+
+    .leftRightButton {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+    .closeButton {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+    .tabsContent {
+        min-width: 250px;
     }
 }

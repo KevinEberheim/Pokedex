@@ -1,4 +1,6 @@
 let allPokemon = [];
+let currentList = [];
+let visiblePokemon = [];
 let typeCache = {};
 let visibleCount = 20;
 let maxLoadPokemon = 100;
@@ -13,16 +15,17 @@ const DOM = {
     searchInput: document.getElementById("searchPokemon"),
     noticeInput: document.getElementById("noticeInput")
 };
-// Alles mit fetchJSON funktion machen
 
 async function init() {
     await loadPokemons();
-
     DOM.searchInput.addEventListener("input", filterPokemon);
 }
 
 function showLoader() {
     DOM.pokemonLoad.innerHTML = getLoader();
+    return new Promise(resolve => {
+        setTimeout(resolve, 2000);
+    });
 }
 
 function hideLoader() {
@@ -39,11 +42,11 @@ async function fetchJSON(url) {
 
 async function loadPokemons() {
     try {
-        showLoader();
+        await showLoader();
 
         const dataPokemon = await fetchJSON(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
         await loadPokemonDetails(dataPokemon);
-        
+
         hideLoader();
         renderPokemon();
 
@@ -57,8 +60,8 @@ async function loadPokemonDetails(dataPokemon) {
         const pokeData = await fetchJSON(pokemon.url);
         return pokeData;
     });
-    
-    let pokemonDetails = await Promise.all(dataPokemonDetails);    
+
+    let pokemonDetails = await Promise.all(dataPokemonDetails);
     allPokemon = [...allPokemon, ...pokemonDetails];
 }
 
@@ -78,22 +81,20 @@ async function getTypeIcons(typeUrl) {
     if (typeCache[typeUrl]) { return typeCache[typeUrl]; }
 
     const dataTypeIcons = await fetchJSON(typeUrl);
-
     const icon = dataTypeIcons.sprites["generation-vii"]["lets-go-pikachu-lets-go-eevee"].symbol_icon;
-
     typeCache[typeUrl] = icon;
     return icon;
 }
 
 async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
+    currentList = filteredList;
     DOM.pokemonLoad.innerHTML = "";
-    const visiblePokemon = filteredList.slice(0, visibleCount);
+    visiblePokemon = filteredList.slice(0, visibleCount);
     const pokemonHTML = await Promise.all(
         visiblePokemon.map(async (pokemon) => {
-            const index = allPokemon.indexOf(pokemon); // nur wenn nötig!
+            const index = currentList.indexOf(pokemon); // nur wenn nötig!
             const mainType = pokemon.types[0].type.name;
             const typesHTML = await loadIcons(pokemon);
-
             return getPokemons(mainType, index, pokemon, typesHTML);
         })
     );
@@ -140,16 +141,8 @@ function changeVisibleCount(amount) {
 
 function filterPokemon(event) {
     const value = event.target.value.toLowerCase();
-    if (!value){
-        DOM.noticeInput.innerHTML = "";
-        renderPokemon();
-        return;
-    }
-    if (value.length < 3) {
-        DOM.noticeInput.textContent = "Need 3 or more letters";
-        renderPokemon();
-        return;
-    }
+    const isValid = checkValueLength(value);
+    if (!isValid) {return;}
     DOM.noticeInput.innerHTML = "";
 
     const filtered = allPokemon.filter(pokemon =>
@@ -159,29 +152,28 @@ function filterPokemon(event) {
     renderPokemon(filtered, true);
 }
 
+function checkValueLength(value){
+    if (!value) {
+        DOM.noticeInput.innerHTML = "";
+        renderPokemon();
+        return false;
+    }
+    if (value.length < 3) {
+        DOM.noticeInput.textContent = "Need 3 or more letters";
+        renderPokemon();
+        return false;
+    }
+    return true;
+}
 
-
-
-
-
-// ---------------- Dialog ----------------
 async function openDialog(index) {
-    const pokemon = allPokemon[index];
-    const mainType = pokemon.types[0].type.name;
-    DOM.nameImg.innerText = pokemon.name;
-
-    let typesHTML = await loadIcons(pokemon);
-
-    DOM.dialogMain.innerHTML = getDialogContent(mainType, pokemon, typesHTML, index);
-
-    DOM.dialogFooter.innerHTML = getFooterDialog(index);
-
-    showTab('main', index);
-
+    document.body.classList.add('no-scroll');
+    await updateDialog(index);
     DOM.dialog.showModal();
 }
 
 function closeDialog() {
+    document.body.classList.remove('no-scroll');
     DOM.dialog.close();
 }
 
@@ -189,8 +181,22 @@ function eventBubbling(event) {
     event.stopPropagation();
 }
 
+async function updateDialog(index) {
+    const pokemon = currentList[index];
+    const mainType = pokemon.types[0].type.name;
+
+    DOM.nameImg.innerText = pokemon.name;
+
+    let typesHTML = await loadIcons(pokemon);
+
+    DOM.dialogMain.innerHTML = getDialogContent(mainType, pokemon, typesHTML, index);
+    DOM.dialogFooter.innerHTML = getFooterDialog(index);
+
+    showTab('main', index);
+}
+
 async function showTab(tab, index) {
-    const pokemon = allPokemon[index];
+    const pokemon = currentList[index];
     if (tab === "main") { return updateTab(getMainTab(pokemon), false); }
     if (tab === "stats") { return updateTab(getStatsTab(pokemon), false); }
     if (tab === "evo") { return updateTab(await getEvoTab(pokemon), true); }
@@ -223,7 +229,6 @@ async function getEvoTab(pokemon) {
     try {
         const speciesData = await fetchJSON(pokemon.species.url);
         const evoData = await fetchJSON(speciesData.evolution_chain.url);
-
         const evoList = extractEvolutionNames(evoData.chain);
 
         return evoList.map((name, index) => {
@@ -263,26 +268,21 @@ function createEvoArrow(index, evoList) {
     return arrow;
 }
 
-
-
-// ---------------- Dialog Navigation ----------------
 function nextPokemon(index) {
-    if (index < allPokemon.length - 1) {
-        openDialog(index + 1);
-    }
+    const nextIndex = (index + 1) % visiblePokemon.length;
+    updateDialog(nextIndex);
 }
 
 function prevPokemon(index) {
-    if (index > 0) {
-        openDialog(index - 1);
-    }
+    const prevIndex = (index - 1 + visiblePokemon.length) % visiblePokemon.length;
+    updateDialog(prevIndex);
 }
 
 function pressArrowKey(event) {
     if (!DOM.dialog.open) { return; }
 
     const name = DOM.nameImg.innerText.toLowerCase();
-    const index = allPokemon.findIndex(p => p.name === name);
+    const index = currentList.findIndex(p => p.name === name);
 
     if (event.key === "ArrowRight") { nextPokemon(index); }
     if (event.key === "ArrowUp") { nextPokemon(index); }

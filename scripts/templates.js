@@ -37,10 +37,10 @@ function getLoadLessButton() {
 
 function getLoadMoreAndLessButton(){
     return `
-            <button onclick="changeVisibleCount(10)" class="load_btn">
+            <button onclick="changeVisibleCount(20)" class="load_btn">
                 More Pokemon
             </button>
-            <button onclick="changeVisibleCount(-10)" class="load_btn">
+            <button onclick="changeVisibleCount(-20)" class="load_btn">
                 Less Pokemon
             </button>
             `;

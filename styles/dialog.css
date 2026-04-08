@@ -2,8 +2,12 @@
     background-color: #082029;
     border-radius: 20px;
     padding: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    max-height: 90vh;
+}
+
+.pictureDialogclass:open {
+    display: flex;
+    flex-direction: column;
 }
 
 .pictureDialogclass header {
@@ -14,6 +18,7 @@
     text-align: center;
     padding-inline: 32px;
     padding-top: 8px;
+    flex-shrink: 0;
 }
 
 .pictureDialogclass main {
@@ -22,6 +27,10 @@
     justify-content: center;
     align-items: center;
     margin-block: 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex-grow: 1;
+    min-height: 0;
 }
 
 .pictureDialogclass_img {
@@ -35,6 +44,7 @@
     color: white;
     font-size: 24px;
     padding-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .pictureDialogclass::backdrop {
@@ -50,7 +60,7 @@
 
 .tabsContent{
     min-width: 490px;
-    min-height: 210px;
+    min-height: 240px;
     width: 100%;
     color: white;
     padding: 16px;
@@ -142,4 +152,7 @@
 .evo-container{
     display: flex;
     align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
