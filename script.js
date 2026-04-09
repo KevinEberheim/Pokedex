@@ -127,23 +127,25 @@ function createLoadButton(filteredList) {
     return DOM.buttonLoad.innerHTML = getLoadMoreAndLessButton();
 }
 
-function changeVisibleCount(amount) {
+async function changeVisibleCount(amount) {
+    const scrollY = window.scrollY;
     if (visibleCount >= allPokemon.length && amount > 0) {
         currentOffset += 100;
         visibleCount += amount;
-        loadPokemons();
+        await loadPokemons();
     }
     else {
         visibleCount += amount;
-        renderPokemon();
+       await renderPokemon();
     }
+    window.scrollTo(0, scrollY);
 }
 
 function filterPokemon(event) {
     const value = event.target.value.toLowerCase();
     const isValid = checkValueLength(value);
-    if (!isValid) {return;}
-    DOM.noticeInput.innerHTML = "";
+    if (!isValid) { return; }
+    DOM.noticeInput.textContent = "";
 
     const filtered = allPokemon.filter(pokemon =>
         pokemon.name.toLowerCase().includes(value)
@@ -152,9 +154,9 @@ function filterPokemon(event) {
     renderPokemon(filtered, true);
 }
 
-function checkValueLength(value){
+function checkValueLength(value) {
     if (!value) {
-        DOM.noticeInput.innerHTML = "";
+        DOM.noticeInput.textContent = "";
         renderPokemon();
         return false;
     }
@@ -231,12 +233,17 @@ async function getEvoTab(pokemon) {
         const evoData = await fetchJSON(speciesData.evolution_chain.url);
         const evoList = extractEvolutionNames(evoData.chain);
 
-        return evoList.map((name, index) => {
-            const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
-            const img = getImageOfEvoPokemon(evoPokemon);
-            const arrow = createEvoArrow(index, evoList);
-            return getDialogEvo(name, img) + arrow;
-        }).join("");
+        const results = await Promise.all(
+            evoList.map(async (name, index) => {
+                const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
+
+                const img = await getImageOfEvoPokemon(evoPokemon, name);
+                const arrow = createEvoArrow(index, evoList);
+
+                return getDialogEvo(name, img) + arrow;
+            })
+        );
+        return results.join("");
 
     } catch (error) {
         console.error("Fehler beim Laden der Evolution:", error);
@@ -256,9 +263,14 @@ function extractEvolutionNames(chain) {
     return evoList;
 }
 
-function getImageOfEvoPokemon(evoPokemon) {
+async function getImageOfEvoPokemon(evoPokemon, name) {
     let img = "";
+    console.log(evoPokemon, name)
     if (evoPokemon) { img = evoPokemon.sprites.other.home.front_default; }
+    else {
+        const data = await fetchJSON(`https://pokeapi.co/api/v2/pokemon/${name}`);
+        img = data.sprites.other.home.front_default;
+    }
     return img;
 }
 

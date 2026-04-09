@@ -129,8 +129,8 @@
     width: 100%;
 }
 
-.pad_in{
-    padding-inline: 32px;
+.min_height_250{
+    min-height: 250px;
 }
 
 .justify_center{

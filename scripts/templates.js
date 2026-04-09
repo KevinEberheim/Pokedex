@@ -50,7 +50,7 @@ function getLoadMoreAndLessButton(){
 function getDialogContent(mainType, pokemon, typesHTML, index){
     return `
         <div class="dialogMainImg">
-            <div class="bg_${mainType} pad_in justify_center">
+            <div class="bg_${mainType} min_height_250 justify_center">
             <img src="${pokemon.sprites.other.home.front_default}" class="pictureDialogclass_img">
             </div>
             <div class="types">${typesHTML}</div>

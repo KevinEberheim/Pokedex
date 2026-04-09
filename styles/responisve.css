@@ -62,4 +62,7 @@
     .tabsContent {
         min-width: 250px;
     }
+    .min_height_250{
+        min-height: 125px;
+    }
 }
