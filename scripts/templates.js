@@ -100,10 +100,10 @@ function getDialogEvo(name, img) {
 function getFooterDialog(index){
     return `
         <button aria-label="Dialog switch image left" onclick="prevPokemon(${index})" class="leftRightButton">
-            &blacktriangleleft;
+            <span class="arrowleft">&blacktriangleleft;</span>
         </button>
         <button aria-label="Dialog switch image right" onclick="nextPokemon(${index})" class="leftRightButton">
-            &blacktriangleright;
+            <span class="arrowright">&blacktriangleright;</span>
         </button>
         `;
 }

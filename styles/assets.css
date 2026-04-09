@@ -32,6 +32,9 @@ button:focus-visible {
     border-radius: 50%;
     border: none;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .leftRightButton:hover {
@@ -53,6 +56,27 @@ button:focus-visible {
     border-radius: 50%;
     border: none;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon{
+    display: block;
+    line-height: 1;
+    transform: translateY(-2.5px);
+}
+
+.arrowleft{
+    display: block;
+    line-height: 1;
+    transform: translateX(-2.5px) translateY(1px);
+}
+
+.arrowright{
+    display: block;
+    line-height: 1;
+    transform: translateX(2.5px) translateY(1px);
 }
 
 .closeButton:hover {
