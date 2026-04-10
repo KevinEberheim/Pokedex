@@ -3,7 +3,7 @@ let currentList = [];
 let visiblePokemon = [];
 let typeCache = {};
 let visibleCount = 20;
-let maxLoadPokemon = 100;
+let maxLoadPokemon = 20;
 let currentOffset = 0;
 const DOM = {
     dialog: document.getElementById("pokemonDialog"),
@@ -130,15 +130,24 @@ function createLoadButton(filteredList) {
 async function changeVisibleCount(amount) {
     const scrollY = window.scrollY;
     if (visibleCount >= allPokemon.length && amount > 0) {
-        currentOffset += 100;
+        currentOffset += maxLoadPokemon;
         visibleCount += amount;
         await loadPokemons();
     }
     else {
         visibleCount += amount;
-       await renderPokemon();
+        await renderPokemon();
     }
-    window.scrollTo(0, scrollY);
+    resetWindwowScroll(scrollY);
+}
+
+function resetWindwowScroll(scrollY) {
+    setTimeout(() => {
+        window.scrollTo({
+            top: scrollY,
+            behavior: "smooth"
+        });
+    }, 50);
 }
 
 function filterPokemon(event) {
@@ -222,7 +231,6 @@ function getStatsTab(pokemon) {
         const value = stat.base_stat;
         const Max_STAT = 150;
         const percent = (value / Max_STAT) * 100;
-
         return getDialogStats(stat, percent);
     }).join("");
 }
@@ -232,23 +240,24 @@ async function getEvoTab(pokemon) {
         const speciesData = await fetchJSON(pokemon.species.url);
         const evoData = await fetchJSON(speciesData.evolution_chain.url);
         const evoList = extractEvolutionNames(evoData.chain);
-
-        const results = await Promise.all(
-            evoList.map(async (name, index) => {
-                const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
-
-                const img = await getImageOfEvoPokemon(evoPokemon, name);
-                const arrow = createEvoArrow(index, evoList);
-
-                return getDialogEvo(name, img) + arrow;
-            })
-        );
-        return results.join("");
-
-    } catch (error) {
+        return getResultsEvoTab(evoList);
+    }
+    catch (error) {
         console.error("Fehler beim Laden der Evolution:", error);
         return "<p>Evolution konnte nicht geladen werden.</p>";
     }
+}
+
+async function getResultsEvoTab(evoList) {
+    const results = await Promise.all(
+        evoList.map(async (name, index) => {
+            const evoPokemon = allPokemon.find(pokemon => pokemon.name === name);
+            const img = await getImageOfEvoPokemon(evoPokemon, name);
+            const arrow = createEvoArrow(index, evoList);
+            return getDialogEvo(name, img) + arrow;
+        })
+    );
+    return results.join("");
 }
 
 function extractEvolutionNames(chain) {
@@ -265,7 +274,6 @@ function extractEvolutionNames(chain) {
 
 async function getImageOfEvoPokemon(evoPokemon, name) {
     let img = "";
-    console.log(evoPokemon, name)
     if (evoPokemon) { img = evoPokemon.sprites.other.home.front_default; }
     else {
         const data = await fetchJSON(`https://pokeapi.co/api/v2/pokemon/${name}`);
