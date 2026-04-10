@@ -132,7 +132,6 @@ function updatePokemonUI(isFiltered, filteredList) {
         DOM.buttonLoad.innerHTML = "";
         return;
     }
-
     if (!isFiltered) {
         createLoadButton(filteredList);
     } else {
@@ -147,7 +146,6 @@ function createLoadButton(filteredList) {
     if (visibleCount > filteredList.length) {
         return DOM.buttonLoad.innerHTML = getLoadLessButton();
     }
-
     return DOM.buttonLoad.innerHTML = getLoadMoreAndLessButton();
 }
 
