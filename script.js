@@ -17,12 +17,14 @@ const DOM = {
 };
 
 async function init() {
-    await loadPokemons();
-    DOM.searchInput.addEventListener("input", filterPokemon);
+    await loadPokemons(true);
+    DOM.searchInput.addEventListener("input", (event) => {
+        filterNoticeInput(event.target.value)
+    });
 }
 
 function showLoader() {
-    DOM.pokemonLoad.innerHTML = getLoader();
+    DOM.pokemonLoad.innerHTML += getLoader();
     return new Promise(resolve => {
         setTimeout(resolve, 2000);
     });
@@ -40,18 +42,26 @@ async function fetchJSON(url) {
     return response.json();
 }
 
-async function loadPokemons() {
+async function loadPokemons(isInitial = false) {
     try {
         await showLoader();
 
         const dataPokemon = await fetchJSON(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
+        const oldLength = allPokemon.length;
         await loadPokemonDetails(dataPokemon);
-
+        const newPokemon = allPokemon.slice(oldLength);
         hideLoader();
-        renderPokemon();
-
+        checkIntialLoad(isInitial, newPokemon);
     } catch (error) {
         console.error(error);
+    }
+}
+
+async function checkIntialLoad(isInitial, newPokemon) {
+    if (isInitial) {
+        await renderPokemon();
+    } else {
+        await appendPokemon(newPokemon);
     }
 }
 
@@ -102,6 +112,20 @@ async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
     updatePokemonUI(isFiltered, filteredList);
 }
 
+async function appendPokemon(newPokemonList) {
+    const pokemonHTML = await Promise.all(
+        newPokemonList.map(async (pokemon) => {
+            const index = allPokemon.indexOf(pokemon);
+            const mainType = pokemon.types[0].type.name;
+            const typesHTML = await loadIcons(pokemon);
+            return getPokemons(mainType, index, pokemon, typesHTML);
+        })
+    );
+
+    DOM.pokemonLoad.innerHTML += pokemonHTML.join("");
+    updatePokemonUI(false, allPokemon);
+}
+
 function updatePokemonUI(isFiltered, filteredList) {
     if (filteredList.length === 0) {
         DOM.pokemonLoad.innerHTML = "Pokemon not found!";
@@ -128,50 +152,47 @@ function createLoadButton(filteredList) {
 }
 
 async function changeVisibleCount(amount) {
-    const scrollY = window.scrollY;
     if (visibleCount >= allPokemon.length && amount > 0) {
         currentOffset += maxLoadPokemon;
         visibleCount += amount;
-        await loadPokemons();
+        await loadPokemons(false);
     }
     else {
         visibleCount += amount;
         await renderPokemon();
     }
-    resetWindwowScroll(scrollY);
 }
 
-function resetWindwowScroll(scrollY) {
-    setTimeout(() => {
-        window.scrollTo({
-            top: scrollY,
-            behavior: "smooth"
-        });
-    }, 50);
+function filterPokemon(isValid) {
+    const value = DOM.searchInput.value.toLowerCase()
+    if (isValid) {
+        if (value.length < 3) { return; }
+        const filtered = allPokemon.filter(pokemon =>
+            pokemon.name.toLowerCase().includes(value)
+        );
+        renderPokemon(filtered, true);
+    }
+    else {
+        DOM.searchInput.value = "";
+        filterNoticeInput(DOM.searchInput.value);
+        renderPokemon();
+    }
 }
 
-function filterPokemon(event) {
-    const value = event.target.value.toLowerCase();
+function filterNoticeInput(input) {
+    const value = input.toLowerCase();
     const isValid = checkValueLength(value);
     if (!isValid) { return; }
     DOM.noticeInput.textContent = "";
-
-    const filtered = allPokemon.filter(pokemon =>
-        pokemon.name.toLowerCase().includes(value)
-    );
-
-    renderPokemon(filtered, true);
 }
 
 function checkValueLength(value) {
     if (!value) {
         DOM.noticeInput.textContent = "";
-        renderPokemon();
         return false;
     }
     if (value.length < 3) {
         DOM.noticeInput.textContent = "Need 3 or more letters";
-        renderPokemon();
         return false;
     }
     return true;

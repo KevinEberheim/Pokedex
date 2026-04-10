@@ -2,7 +2,7 @@
     background-color: #082029;
 }
 
-.header_main_content_wrapper{
+.header_main_content_wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -52,19 +52,41 @@
     align-items: center;
 }
 
-.inputWrapper{
+.inputWrapper {
     position: relative;
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
 }
 
-.searchInput{
+.buttonWrapper{
+    display: flex;
+}
+
+.searchInput {
     padding: 8px;
+    border: none;
+    border-radius: 8px;
 }
 
-.noticeInputPokemon{
+.inputButton {
+    border: none;
+    border-radius: 8px;
+    color: white;
+    background-color: #082029;
+    cursor: pointer;
+    font-size: large;
+}
+
+.inputButton:hover {
+    color: aqua;
+}
+
+.noticeInputPokemon {
     position: absolute;
-    margin-top: 2px;
+    top: -35px;
     font-size: 0.8rem;
-    color: red;;
+    color: aqua;
 }
 
 .pokemon_card {
@@ -82,7 +104,7 @@
 }
 
 .pokemon_card img {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 50%;
 }
 

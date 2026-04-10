@@ -1,3 +1,10 @@
+@media (max-width:730px) {
+    .header_main_content_wrapper {
+        flex-direction: column;
+        padding-bottom: 20px;
+    }
+}
+
 @media (max-width:580px) {
     .header_main_content_wrapper img {
         height: 56px;
@@ -22,31 +29,12 @@
 }
 
 @media (max-width:490px) {
-    .evo-container {
-        flex-direction: column;
-        justify-content: unset;
-    }
-
-    .evo-arrow {
-        transform: rotate(90deg);
-        margin: 8px 0;
-    }
-
-    .header_main_content_wrapper {
-        flex-direction: column;
-        padding-bottom: 20px;
-    }
-
-    .searchInput {
-        padding: 2px;
-    }
-
     .pictureDialogclass_img {
         width: 125px;
     }
 
-    .evo_Img{
-        width: 75px;
+    .evo_Img {
+        width: 60px;
     }
 
     .leftRightButton {
@@ -54,16 +42,45 @@
         height: 40px;
         font-size: 24px;
     }
+
     .closeButton {
         width: 40px;
         height: 40px;
         font-size: 24px;
     }
+
+    .tabsContent {
+        min-width: 320px;
+        max-width: unset;
+    }
+
+    .min_height_250 {
+        min-height: 125px;
+    }
+}
+
+@media (max-width:390px) {
+    .searchInput {
+        width: 140px;
+    }
+
+    .inputButton {
+        font-size: medium;
+    }
+
+    .evo-arrow {
+        font-size: 12px;
+    }
+
+    .evo-item {
+        font-size: 12px;
+    }
+
     .tabsContent {
         min-width: 270px;
         max-width: 270px;
     }
-    .min_height_250{
-        min-height: 125px;
+    .evo-container{
+        padding: 0;
     }
 }
