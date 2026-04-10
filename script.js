@@ -45,7 +45,6 @@ async function fetchJSON(url) {
 async function loadPokemons(isInitial = false) {
     try {
         await showLoader();
-
         const dataPokemon = await fetchJSON(`https://pokeapi.co/api/v2/pokemon?limit=${maxLoadPokemon}&offset=${currentOffset}`);
         const oldLength = allPokemon.length;
         await loadPokemonDetails(dataPokemon);
@@ -153,6 +152,7 @@ async function changeVisibleCount(amount) {
     if (visibleCount >= allPokemon.length && amount > 0) {
         currentOffset += maxLoadPokemon;
         visibleCount += amount;
+        DOM.buttonLoad.innerHTML = "";
         await loadPokemons(false);
     }
     else {
