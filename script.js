@@ -101,7 +101,7 @@ async function renderPokemon(filteredList = allPokemon, isFiltered = false) {
     visiblePokemon = filteredList.slice(0, visibleCount);
     const pokemonHTML = await Promise.all(
         visiblePokemon.map(async (pokemon) => {
-            const index = currentList.indexOf(pokemon); // nur wenn nötig!
+            const index = currentList.indexOf(pokemon);
             const mainType = pokemon.types[0].type.name;
             const typesHTML = await loadIcons(pokemon);
             return getPokemons(mainType, index, pokemon, typesHTML);
