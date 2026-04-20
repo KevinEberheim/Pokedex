@@ -87,4 +87,4 @@ The Pokémon detail modal includes proper ARIA labels and supports keyboard navi
 
 ---
 
-Created as part of the Developer Akademie curriculum.
+Developed as part of the Developer Akademie portfolio.
