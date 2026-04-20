@@ -83,8 +83,8 @@ The Pokémon detail modal includes proper ARIA labels and supports keyboard navi
 
 ## License
 
-This project is open source and available for educational purposes.
+© 2025 Kevin Eberheim
 
-## Author
+---
 
 Created as part of the Developer Akademie curriculum.
